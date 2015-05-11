@@ -11,6 +11,7 @@
 #include <amp.h>
 
 using namespace std;
+
 #pragma comment(lib, "opengl32.lib")
 #pragma comment(lib, "glu32.lib")
 #pragma comment(lib, "glut32.lib")
@@ -18,7 +19,7 @@ using namespace std;
 #define WINDOW_WIDTH 1024
 #define WINDOW_HEIGHT 1024
 
-int fractal_area_depth[WINDOW_HEIGHT][WINDOW_WIDTH];
+int fractal_area_depth[WINDOW_HEIGHT*WINDOW_WIDTH];
 
 void InitGraphics(int argc, char *argv[]);
 double zoom=1.0;
@@ -48,16 +49,19 @@ void SetTransformations()
 
 void updateFractals()
 {
-	memset(fractal_area_depth,0,sizeof(fractal_area_depth));
+	//memset(fractal_area_depth,0,sizeof(fractal_area_depth));
 	double t = omp_get_wtime();
-	for(int i = 0 ; i<WINDOW_HEIGHT ; i++)
-		for(int j = 0 ; j<WINDOW_WIDTH ; j++)
+#pragma omp parallel for num_threads(16)
+	for(int i=0;i<WINDOW_HEIGHT*WINDOW_WIDTH;++i)
 		{
-			int d = f(complex<double>((j-WINDOW_WIDTH/2)/256.0,(i-WINDOW_HEIGHT/2)/256.0));
-			fractal_area_depth[i][j]= (d<DEPTH_THRESHOLD) ? d : 0;
+			int y = i/WINDOW_WIDTH;
+			int x = i%WINDOW_WIDTH;
+			int d = f(complex<double>((x-WINDOW_WIDTH/2)/(WINDOW_WIDTH/4.0),(y-WINDOW_HEIGHT/2)/(WINDOW_HEIGHT/4.0)));
+			fractal_area_depth[i]= (d<DEPTH_THRESHOLD) ? d : 0;
 		}
+
 		char fpsString[128];
-		sprintf_s(fpsString, "%f fps", 1/(omp_get_wtime()-t));
+		sprintf(fpsString, "%f fps", 1/(omp_get_wtime()-t));
 		glutSetWindowTitle(fpsString);			
 }
 
@@ -73,9 +77,9 @@ void OnDisplay()
 
 	for(int i = 0 ; i<WINDOW_HEIGHT ; i++)
 		for(int j = 0 ; j<WINDOW_WIDTH ; j++)
-			if(fractal_area_depth[i][j])
+			if(fractal_area_depth[i*WINDOW_WIDTH+j])
 			{
-				double colorShade = (double)fractal_area_depth[i][j]/(double)DEPTH_THRESHOLD;
+				double colorShade = (double)fractal_area_depth[i*WINDOW_WIDTH+j]/(double)DEPTH_THRESHOLD;
 				glColor3d(colorShade,0,colorShade);
 				glVertex2d(j-WINDOW_WIDTH/2, i-WINDOW_HEIGHT/2);
 			}
