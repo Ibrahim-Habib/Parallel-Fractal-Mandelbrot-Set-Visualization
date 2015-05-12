@@ -56,9 +56,6 @@ void updateFractals(int machineID, int *slave_buffer)
 {
 	double params[4]; 
 	MPI_Recv(&params, 4, MPI_DOUBLE, 0, MPI_ANY_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-
-	//double start_time = omp_get_wtime();
-
 	int fraction_size = (WINDOW_HEIGHT*WINDOW_WIDTH)/(num_of_processes-1);
 	int start_pos = (machineID-1) * fraction_size;
 
@@ -70,35 +67,36 @@ void updateFractals(int machineID, int *slave_buffer)
 		int depth = f(complex<double>((x-WINDOW_WIDTH/2)/(WINDOW_WIDTH/4.0),(y-WINDOW_HEIGHT/2)/(WINDOW_HEIGHT/4.0)));
 		slave_buffer[i-start_pos]= (depth<DEPTH_THRESHOLD) ? depth : 0;
 	}
-
 	MPI_Send(slave_buffer, fraction_size, MPI_INT, 0, machineID, MPI_COMM_WORLD);
-
-	//char fpsString[128];
-	//sprintf(fpsString, "%f fps", 1/(omp_get_wtime()-start_time));
-	//glutSetWindowTitle(fpsString);			
 }
 
 
 void OnDisplay() 
 {
 	//Sends a starting signal (current area of interest)to the slaves for the current frame computation
-	printf("koko\n");
 	double params[4] = {-1,-1,-1,-1};
 	// 0: TOP_LEFT_X
 	// 1: TOP_LEFT_Y
 	// 2: ZOOM_LVL
 	// 3: DEPTH_THRESHOLD
+
+	double start_time = omp_get_wtime();
+
 	for(int i= 1 ; i<num_of_processes ; i++)
 		MPI_Send(params, 4, MPI_DOUBLE, i, 0, MPI_COMM_WORLD);
-	printf("koko\n");
+
 	glClearColor(0, 0, 0, 1);
 	glClear(GL_COLOR_BUFFER_BIT);
 	SetTransformations();
 	glBegin(GL_POINTS);
-	
+
 	int fraction_size = (WINDOW_HEIGHT*WINDOW_WIDTH)/(num_of_processes-1);
 	for(int i= 1 ; i<num_of_processes ; i++)
-	MPI_Recv((fractal_area_depth+(i-1)*fraction_size), fraction_size, MPI_INT, i, MPI_ANY_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+		MPI_Recv((fractal_area_depth+(i-1)*fraction_size), fraction_size, MPI_INT, i, MPI_ANY_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+
+	char fpsString[128];
+	sprintf(fpsString, "%f fps", 1/(omp_get_wtime()-start_time));
+	glutSetWindowTitle(fpsString);
 
 	for(int i = 0 ; i<WINDOW_HEIGHT ; i++)
 		for(int j = 0 ; j<WINDOW_WIDTH ; j++)
@@ -136,16 +134,20 @@ int main(int argc, char* argv[])
 	if(myId == 0)
 	{
 		printf("%d Processes\n", num_of_processes);
-		if(num_of_processes >= 2 )
-		{
-			printf("koko\n");
-			fractal_area_depth = new int[WINDOW_HEIGHT*WINDOW_WIDTH];
-			InitGraphics(argc, argv);
-		}
-		else
+		if(num_of_processes < 2 )
 		{
 			printf("A Master needs at least one slave to satisfy him!\n");
 			return 0;
+		}
+		else if((num_of_processes-2) & (num_of_processes-1) == 0)
+		{
+			printf("A Master needs a slave of multiple of 2 to divide the data evenly!\n");
+			return 0;
+		}
+		else
+		{
+			fractal_area_depth = new int[WINDOW_HEIGHT*WINDOW_WIDTH];
+			InitGraphics(argc, argv);
 		}
 	}
 	else
