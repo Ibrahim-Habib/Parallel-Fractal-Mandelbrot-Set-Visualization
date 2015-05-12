@@ -23,11 +23,66 @@ int num_of_processes;
 
 #define WINDOW_WIDTH 1024
 #define WINDOW_HEIGHT 1024
+#define minX -2
+#define minY -2
+#define maxX 2
+#define maxY 2
+#define maxZoomLevel 10
+#define minZoomLevel 0.1
 
 int *fractal_area_depth;
 void InitGraphics(int argc, char *argv[]);
-double zoom=1.0;
-int DEPTH_THRESHOLD=30;
+
+double zoomLevel=1.0;
+double centerX, centerY;
+
+int DEPTH_THRESHOLD=50;
+
+void keyPressed(unsigned char key, int x, int y)
+{
+	if(key == '+')
+	{
+		zoomLevel += 0.1 * zoomLevel;
+	}
+	else if(key == '-')
+	{
+		zoomLevel -= 0.1 * zoomLevel;
+	}
+
+	//validate that the zoomLevel is within the range
+	zoomLevel = min(zoomLevel, maxZoomLevel);
+	zoomLevel = max(zoomLevel, minZoomLevel);
+	printf("Zoom Level = %d\n", zoomLevel);
+}
+
+void specialKeyPressed(int key, int x, int y)
+{
+	double newCenterX = centerX, newCenterY = centerY;
+	if(key == GLUT_KEY_UP)
+	{
+		newCenterY += 0.1 * (1 / zoomLevel);
+	}
+	else if(key == GLUT_KEY_DOWN)
+	{
+		newCenterY -= 0.1 * (1 / zoomLevel);
+	}
+	else if(key == GLUT_KEY_LEFT)
+	{
+		newCenterX -= 0.1 * (1 / zoomLevel);
+	}
+	else if(key == GLUT_KEY_RIGHT)
+	{
+		newCenterX += 0.1 * (1 / zoomLevel);
+	}
+
+	printf("special key pressed\n");
+	//validate that the window is within the range
+	if(newCenterX - 2 * (1 / zoomLevel) >= minX && newCenterX + 2 * (1 / zoomLevel) <= maxX && newCenterY - 2 * (1 / zoomLevel) >= minY && newCenterY + 2 * (1 / zoomLevel) <= maxY)
+	{
+		centerX = newCenterX;
+		centerY = newCenterY;
+	}
+} 
 
 
 int f(complex<double>c)
@@ -55,6 +110,10 @@ void SetTransformations()
 void updateFractals(int machineID, int *slave_buffer)
 {
 	double params[4]; 
+	// 0: TOP_LEFT_X
+	// 1: TOP_LEFT_Y
+	// 2: ZOOM_LVL
+	// 3: DEPTH_THRESHOLD
 	MPI_Recv(&params, 4, MPI_DOUBLE, 0, MPI_ANY_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 	int fraction_size = (WINDOW_HEIGHT*WINDOW_WIDTH)/(num_of_processes-1);
 	int start_pos = (machineID-1) * fraction_size;
@@ -64,7 +123,7 @@ void updateFractals(int machineID, int *slave_buffer)
 	{
 		int y = i/WINDOW_WIDTH;
 		int x = i%WINDOW_WIDTH;
-		int depth = f(complex<double>((x-WINDOW_WIDTH/2)/(WINDOW_WIDTH/4.0),(y-WINDOW_HEIGHT/2)/(WINDOW_HEIGHT/4.0)));
+		int depth = f(complex<double>((1 / zoomLevel) * (x-WINDOW_WIDTH/2)/(WINDOW_WIDTH/4.0), (1 / zoomLevel) * (y-WINDOW_HEIGHT/2)/(WINDOW_HEIGHT/4.0)));
 		slave_buffer[i-start_pos]= (depth<DEPTH_THRESHOLD) ? depth : 0;
 	}
 	MPI_Send(slave_buffer, fraction_size, MPI_INT, 0, machineID, MPI_COMM_WORLD);
@@ -79,7 +138,6 @@ void OnDisplay()
 	// 1: TOP_LEFT_Y
 	// 2: ZOOM_LVL
 	// 3: DEPTH_THRESHOLD
-
 	double start_time = omp_get_wtime();
 
 	for(int i= 1 ; i<num_of_processes ; i++)
@@ -120,7 +178,9 @@ void InitGraphics(int argc, char *argv[])
 	glutInitWindowSize(800, 800);
 	glutCreateWindow("Parallel Mandelbrot Set Fractals Visualization");
 	glutDisplayFunc(OnDisplay);
-
+	glutKeyboardFunc(keyPressed);
+	glutSpecialFunc(specialKeyPressed);
+	printf("funcitons registered\n");
 	glutMainLoop();
 }
 
@@ -139,9 +199,9 @@ int main(int argc, char* argv[])
 			printf("A Master needs at least one slave to satisfy him!\n");
 			return 0;
 		}
-		else if((num_of_processes-2) & (num_of_processes-1) == 0)
+		else if(((num_of_processes-2) & (num_of_processes-1)) != 0)
 		{
-			printf("A Master needs a slave of multiple of 2 to divide the data evenly!\n");
+			printf("A Master needs a slave of power of 2 to divide the data evenly!\n");
 			return 0;
 		}
 		else
