@@ -60,7 +60,7 @@ void updateFractals(int machineID, int *slave_buffer)
 	//double start_time = omp_get_wtime();
 
 	int fraction_size = (WINDOW_HEIGHT*WINDOW_WIDTH)/(num_of_processes-1);
-	int start_pos = machineID * fraction_size;
+	int start_pos = (machineID-1) * fraction_size;
 
 #pragma omp parallel for num_threads(16)
 	for(int i=start_pos;i<start_pos+fraction_size;++i)
@@ -98,7 +98,7 @@ void OnDisplay()
 	
 	int fraction_size = (WINDOW_HEIGHT*WINDOW_WIDTH)/(num_of_processes-1);
 	for(int i= 1 ; i<num_of_processes ; i++)
-	MPI_Recv((fractal_area_depth+i*fraction_size), fraction_size, MPI_INT, i, MPI_ANY_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+	MPI_Recv((fractal_area_depth+(i-1)*fraction_size), fraction_size, MPI_INT, i, MPI_ANY_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 
 	for(int i = 0 ; i<WINDOW_HEIGHT ; i++)
 		for(int j = 0 ; j<WINDOW_WIDTH ; j++)
@@ -120,7 +120,7 @@ void InitGraphics(int argc, char *argv[])
 	glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE);
 	glutInitWindowPosition(100, 100); 
 	glutInitWindowSize(800, 800);
-	glutCreateWindow("Parallel Mandelbrot Fractals Visualization");
+	glutCreateWindow("Parallel Mandelbrot Set Fractals Visualization");
 	glutDisplayFunc(OnDisplay);
 
 	glutMainLoop();
@@ -136,7 +136,7 @@ int main(int argc, char* argv[])
 	if(myId == 0)
 	{
 		printf("%d Processes\n", num_of_processes);
-		if(num_of_processes < 2 )
+		if(num_of_processes >= 2 )
 		{
 			printf("koko\n");
 			fractal_area_depth = new int[WINDOW_HEIGHT*WINDOW_WIDTH];
