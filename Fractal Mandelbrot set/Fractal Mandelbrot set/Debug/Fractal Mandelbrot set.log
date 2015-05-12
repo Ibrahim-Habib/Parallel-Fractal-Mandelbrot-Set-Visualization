@@ -1,14 +1,5 @@
-﻿Build started 12/05/2015 10:52:12 م.
-     1>Project "D:\FCIS\4th year\Second Term\Distributed Computing\Project\Parallel-Fractal-Mandelbrot-Set-Visualization\Fractal Mandelbrot set\Fractal Mandelbrot set\Fractal Mandelbrot set.vcxproj" on node 2 (Build target(s)).
-     1>ClCompile:
-         C:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\bin\CL.exe /c /I"C:\Program Files\Microsoft HPC Pack 2012\Inc" /ZI /nologo /W3 /WX- /sdl /Od /Oy- /D WIN32 /D _DEBUG /D _CONSOLE /D _CRT_SECURE_NO_WARNINGS /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc110.pdb" /Gd /TP /analyze- /errorReport:prompt main.cpp
-         main.cpp
-     1>d:\fcis\4th year\second term\distributed computing\project\parallel-fractal-mandelbrot-set-visualization\fractal mandelbrot set\fractal mandelbrot set\main.cpp(202): warning C4554: '&' : check operator precedence for possible error; use parentheses to clarify precedence
-       Link:
-         C:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"D:\FCIS\4th year\Second Term\Distributed Computing\Project\Parallel-Fractal-Mandelbrot-Set-Visualization\Fractal Mandelbrot set\Debug\Fractal Mandelbrot set.exe" /INCREMENTAL /NOLOGO /LIBPATH:"C:\Program Files\Microsoft HPC Pack 2012\Lib\i386" msmpi.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"D:\FCIS\4th year\Second Term\Distributed Computing\Project\Parallel-Fractal-Mandelbrot-Set-Visualization\Fractal Mandelbrot set\Debug\Fractal Mandelbrot set.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"D:\FCIS\4th year\Second Term\Distributed Computing\Project\Parallel-Fractal-Mandelbrot-Set-Visualization\Fractal Mandelbrot set\Debug\Fractal Mandelbrot set.lib" /MACHINE:X86 Debug\main.obj
-         Fractal Mandelbrot set.vcxproj -> D:\FCIS\4th year\Second Term\Distributed Computing\Project\Parallel-Fractal-Mandelbrot-Set-Visualization\Fractal Mandelbrot set\Debug\Fractal Mandelbrot set.exe
-     1>Done Building Project "D:\FCIS\4th year\Second Term\Distributed Computing\Project\Parallel-Fractal-Mandelbrot-Set-Visualization\Fractal Mandelbrot set\Fractal Mandelbrot set\Fractal Mandelbrot set.vcxproj" (Build target(s)).
+﻿Build started 12/05/2015 11:06:14 م.
 
 Build succeeded.
 
-Time Elapsed 00:00:10.08
+Time Elapsed 00:00:00.10
