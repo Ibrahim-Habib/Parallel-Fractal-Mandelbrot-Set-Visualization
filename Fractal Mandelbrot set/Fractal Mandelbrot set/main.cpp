@@ -40,7 +40,7 @@ int DEPTH_THRESHOLD=50;
 
 void keyPressed(unsigned char key, int x, int y)
 {
-	if(key == '+')
+	if(key == '+' || key == '=')
 		zoomLevel += 0.1 * zoomLevel;
 	if(key == '-')
 		zoomLevel -= 0.1 * zoomLevel;
@@ -100,11 +100,12 @@ void updateFractals(int machineID, int *slave_buffer)
 	// 1: CENTERY
 	// 2: ZOOM_LVL
 	// 3: DEPTH_THRESHOLD
+	
+	MPI_Recv(&params, 4, MPI_DOUBLE, 0, MPI_ANY_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 	complex<double> center(params[0],params[1]);
 	double zoomLevel=params[2];
 	int depth_thres=params[3];
 
-	MPI_Recv(&params, 4, MPI_DOUBLE, 0, MPI_ANY_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 	int fraction_size = (WINDOW_HEIGHT*WINDOW_WIDTH)/(num_of_processes-1);
 	int start_pos = (machineID-1) * fraction_size;
 
@@ -154,10 +155,10 @@ void OnDisplay()
 				glColor3d(colorShade,0,colorShade);
 				glVertex2d(j-WINDOW_WIDTH/2, i-WINDOW_HEIGHT/2);
 			}
-			glEnd();
-			glFlush();
-			glutSwapBuffers();
-			glutPostRedisplay();
+	glEnd();
+	glFlush();
+	glutSwapBuffers();
+	glutPostRedisplay();
 }
 
 void InitGraphics(int argc, char *argv[]) 
